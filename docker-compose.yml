@@ -1,0 +1,55 @@
+version: '3.9'
+
+services:
+
+  reverse-proxy:
+    image: nginx:latest
+    container_name: reverse-proxy
+    depends_on:
+        - fibonacci-frontend
+        - number-service
+        - fibonacci-service
+    volumes:
+      - ./logs/reverse_proxy:/var/log/nginx
+      - ./reverse_proxy/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - 80:80
+
+
+  fibonacci-frontend:
+    image: gazfaroda/fibonacci-frontend
+    container_name: fibonacci-frontend
+    build:
+      context: ./fibonacci_frontend
+    depends_on:
+        - number-service
+        - fibonacci-service
+    volumes:
+      - ./logs/fibonacci_frontend:/var/log/nginx
+    ports:
+      - 8080:80
+    restart: on-failure
+
+
+  number-service:
+    image: gazfaroda/number-service
+    container_name: number-service
+    build:
+      context: ./number_service
+    volumes:
+      - ./logs/number_service:/app/logs
+    ports:
+      - 5005:5000
+    restart: on-failure
+
+
+  fibonacci-service:
+    image: gazfaroda/fibonacci-service
+    container_name: fibonacci-service
+    build:
+      context: ./fibonacci_service
+    volumes:
+      - ./logs/fibonacci_service:/app/logs
+    ports:
+      - 5007:5000
+    restart: on-failure
